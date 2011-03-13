@@ -27,8 +27,8 @@ public class ImportMain {
 	public static boolean parseArguments(String[] args) {
 		//For Testing...
 		//args[0] = "--datfile=test.txt";
+		//args[0] = "--zipfile=test.txt";
 		//args[0] = "--dirname=/path/to/zip/files";
-		//args[0] = "--dirname=/Users/mweppler/Development/Projects/TradeRevImport/test/inputs";
 		//args[0] = "--rwtrailer";
 		//args[0] = "--testrun";
 		//args[0] = "--writecsv";
@@ -75,6 +75,13 @@ public class ImportMain {
 			}
 		}
 
+		for (int i = 0; i < arguments.length; ++i) {
+			if (arguments[i].contains("--zipfile=")) {
+				FormatCSV.extractTradeRevFile(appSettings, arguments[i].substring(10, arguments[i].length()));
+				break;
+			}
+		}
+
 		File directory = null;
 		for (int i = 0; i < arguments.length; ++i) {
 			if (arguments[i].contains("--dirname=")) {
@@ -84,30 +91,11 @@ public class ImportMain {
 		}
 
 		// Directory argument was passed.
-		if (directory.exists() && directory.isDirectory()) {
-			appSettings.setFileDirectory(directory.getAbsolutePath()+"/");
-			String[] files = directory.list();
-			for (String fileX : files) {
-				// not a Hidden('.') file, and is a .zip file
-				if (!fileX.substring(0, 1).equals(".") && fileX.substring(fileX.length()-4).equals(".zip")) {
-					FormatCSV.extractTradeRevFile(appSettings, fileX);
-					if (ArrayUtils.contains(arguments, "--rwtrailer")) {
-						readWriteTrailerToDB(appSettings);
-					}
-					if (ArrayUtils.contains(arguments, "--writecsv")) {
-						createCSVFile(appSettings);
-					}
-					if (ArrayUtils.contains(arguments, "--writedb")) {
-						writeDataToDB(appSettings);
-					}
-					if (ArrayUtils.contains(arguments, "--zipbup")) {
-						archiveAndBackup(appSettings);
-					}
-					File f = new File(appSettings.getFileDirectory()+"TRDREV_TD.DAT");
-					f.delete();
-				}
+		if (directory == null) {
+			if (ArrayUtils.contains(arguments, "--testrun")) {
+				System.out.println("Test Run, Goodbye...");
+				System.exit(0);
 			}
-		} else {
 			if (ArrayUtils.contains(arguments, "--rwtrailer")) {
 				readWriteTrailerToDB(appSettings);
 			}
@@ -119,6 +107,37 @@ public class ImportMain {
 			}
 			if (ArrayUtils.contains(arguments, "--zipbup")) {
 				archiveAndBackup(appSettings);
+			}
+		} else {
+			if (directory.exists() && directory.isDirectory()) {
+				appSettings.setFileDirectory(directory.getAbsolutePath()+"/");
+				String[] files = directory.list();
+				for (String fileX : files) {
+					// not a Hidden('.') file, and is a .zip file
+					if (!fileX.substring(0, 1).equals(".") && fileX.substring(fileX.length()-4).equals(".zip")) {
+						if (ArrayUtils.contains(arguments, "--testrun")) {
+							System.out.println("Test Run, Goodbye...");
+							System.exit(0);
+						}
+						FormatCSV.extractTradeRevFile(appSettings, fileX);
+						if (ArrayUtils.contains(arguments, "--rwtrailer")) {
+							readWriteTrailerToDB(appSettings);
+						}
+						if (ArrayUtils.contains(arguments, "--writecsv")) {
+							createCSVFile(appSettings);
+						}
+						if (ArrayUtils.contains(arguments, "--writedb")) {
+							writeDataToDB(appSettings);
+						}
+						if (ArrayUtils.contains(arguments, "--zipbup")) {
+							archiveAndBackup(appSettings);
+						}
+						File f = new File(appSettings.getFileDirectory()+"TRDREV_TD.DAT");
+						f.delete();
+					}
+				}
+			} else {
+				System.out.println("Directory: " + directory.getName() + " does not exist.");
 			}
 		}
 	}
@@ -146,14 +165,17 @@ public class ImportMain {
 
 	private static void printHelpScreen() {
 		StringBuilder sb = new StringBuilder("\nPlease run with arguments:\n");
-		sb.append("    --datfile:	Follow with \"='filename'\" to import. Ignores config file value.\n");
-		sb.append("    --dirname:	Follow with \"='/path/to/files/'\" to loop through a directory of Zipped files.\n");
-		sb.append("    --rwtrailer:	Reads the DAT file header/trailer, Writes the data to the database.\n");
-		sb.append("    --writecsv:	Reformats the Fixed length DAT file to a CSV file.\n");
-		sb.append("    --writedb:	Writes the CSV file into the Database, then deletes the CSV file.\n");
-		sb.append("    --zipbup:	Zips Original DAT file and copies it to two backup locations.\n");
-		sb.append("\n*If running this command daily use: 'java -jar TradeRevImport.jar --rwtrailer --writecsv --writedb --zipbup'\n");
-		sb.append("\n*If importing old data into database use: 'java -jar TradeRevImport.jar --writecsv --writedb'\n");
+		sb.append("    --datfile:		Follow with \"='filename'\" to import. Ignores config file value.\n");
+		sb.append("    --zipfile:		Follow with \"='filename'\" to extract TRDREV_TD.DAT file.\n");
+		sb.append("    --dirname:		Follow with \"='/path/to/files/'\" to loop through a directory of Zipped files.\n");
+		sb.append("    --rwtrailer:		Reads the DAT file header/trailer, Writes the data to the database.\n");
+		sb.append("    --writecsv:		Reformats the Fixed length DAT file to a CSV file.\n");
+		sb.append("    --writedb:		Writes the CSV file into the Database, then deletes the CSV file.\n");
+		sb.append("    --zipbup:		Zips Original DAT file and copies it to two backup locations.\n");
+		sb.append("\n*If running this command daily use: 'java -jar TradeRevImport.jar'\n");
+		sb.append("    '--rwtrailer --writecsv --writedb --zipbup'\n");
+		sb.append("\n*If importing old data into database use: 'java -jar TradeRevImport.jar' with\n");
+		sb.append("    '--writecsv --writedb' or '--zipfile='file.zip' --writecsv --writedb'\n");
 		sb.append("\n*You may want to add the trailer data if you havent already: 'java -jar TradeRevImport.jar --rwtrailer'\n");
 		sb.append("\n");
 		System.out.println(sb.toString());

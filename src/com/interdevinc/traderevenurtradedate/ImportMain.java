@@ -1,78 +1,129 @@
-package com.interdevinc.traderevenurtradedate;
-
-/*
+/**
  * ImportMain
  * Created on Jul 29, 2009 8:41AM
- * MOdified on Feb 11, 2011 12:00AM
+ * Modified on Mar 12, 2011 12:00AM
  * @author Matthew Weppler
  * copyright 2011 InterDev Inc.
  */
+package com.interdevinc.traderevenurtradedate;
+
+import java.io.File;
+
+import org.apache.commons.lang.ArrayUtils;
+
 public class ImportMain {
 
 	public static void main(String[] args) {
-
-		//        // For Testing...
-		//        args = new String[1];
-		//        args[0] = "-writecsv";
-		//        args[0] = "-zipbup";
-		//        args[0] = "-writedb";
-
+		//For Testing...
+		//args = new String[x];
+		parseArguments(args);
 		String userDir = System.getProperty("user.dir");
-		userDir = new StringBuilder(userDir).append("/appConfig.xml").toString();
-		//System.out.println(userDir);
-		XMLReader xmlConf = new XMLReader(userDir);
-		xmlConf.setAppSettings();
-		String[] appSettings;
-		appSettings = xmlConf.getAppSettings();
+		String configFile = userDir.concat("/appConfig.xml"); 		//System.out.println(configFile);
+		XMLReader xmlConf = new XMLReader(configFile);
+		ApplicationSettings appSettings = xmlConf.createApplicationSettings();
+		runFunctions(appSettings, args);
+	}
 
+	public static boolean parseArguments(String[] args) {
+		//For Testing...
+		//args[0] = "--datfile=test.txt";
+		//args[0] = "--dirname=/path/to/zip/files";
+		//args[0] = "--dirname=/Users/mweppler/Development/Projects/TradeRevImport/test/inputs";
+		//args[0] = "--rwtrailer";
+		//args[0] = "--testrun";
+		//args[0] = "--writecsv";
+		//args[0] = "--writedb";
+		//args[0] = "--zipbup";
+		boolean badArg = true;
 		if (args.length > 0) {
-			//printArgumentsPassed(args); // Prints the arguments passed on the cli
-			boolean badArg = true;
-			for (int a = 0; a < args.length; ++a) {
-				if ("-writecsv".equals(args[a])) {
-					writecsv(appSettings);
-					badArg = false;
-				}
+			if (ArrayUtils.contains(args, "--rwtrailer")) {
+				badArg = false;
+			}
+			if (ArrayUtils.contains(args, "--testrun")) {
+				badArg = false;
+			}
+			if (ArrayUtils.contains(args, "--writecsv")) {
+				badArg = false;
+			}
+			if (ArrayUtils.contains(args, "--writedb")) {
+				badArg = false;
+			}
+			if (ArrayUtils.contains(args, "--zipbup")) {
+				badArg = false;
+			}
+			if (badArg) {
+				printArgumentsPassed(args); // Prints the arguments passed on the cli
+				System.out.println("Please run: 'java -jar TradeRevImport.jar' without arguments to get help.");
+				printHelpScreen();
+				System.exit(1);
+				return false;
+			}
+			return true;
+		} else {
+			printHelpScreen();
+			System.exit(1);
+			return false;
+		}
+	}
 
-				if ("-zipbup".equals(args[a])) {
-					zipAndBackup(appSettings);
-					badArg = false;
-				}
+	public static void runFunctions(ApplicationSettings appSettings, String[] arguments) {
 
-				if ("-writedb".equals(args[a])) {
-					writeToDB(appSettings);
-					badArg = false;
-				}
-				if (badArg == true) {
-					System.out.println("Please run: 'java -jar DatToCSV.jar' to get a list of arguments.");
+		for (int i = 0; i < arguments.length; ++i) {
+			if (arguments[i].contains("--datfile=")) {
+				appSettings.setDatFileName(arguments[i].substring(10, arguments[i].length()));
+				break;
+			}
+		}
+
+		File directory = null;
+		for (int i = 0; i < arguments.length; ++i) {
+			if (arguments[i].contains("--dirname=")) {
+				directory = new File(arguments[i].substring(10, arguments[i].length()));
+				break;
+			}
+		}
+
+		// Directory argument was passed.
+		if (directory.exists() && directory.isDirectory()) {
+			appSettings.setFileDirectory(directory.getAbsolutePath()+"/");
+			String[] files = directory.list();
+			for (String fileX : files) {
+				// not a Hidden('.') file, and is a .zip file
+				if (!fileX.substring(0, 1).equals(".") && fileX.substring(fileX.length()-4).equals(".zip")) {
+					FormatCSV.extractTradeRevFile(appSettings, fileX);
+					if (ArrayUtils.contains(arguments, "--rwtrailer")) {
+						readWriteTrailerToDB(appSettings);
+					}
+					if (ArrayUtils.contains(arguments, "--writecsv")) {
+						createCSVFile(appSettings);
+					}
+					if (ArrayUtils.contains(arguments, "--writedb")) {
+						writeDataToDB(appSettings);
+					}
+					if (ArrayUtils.contains(arguments, "--zipbup")) {
+						archiveAndBackup(appSettings);
+					}
+					File f = new File(appSettings.getFileDirectory()+"TRDREV_TD.DAT");
+					f.delete();
 				}
 			}
 		} else {
-			System.out.println("\nPlease run with arguments:");
-			System.out.println("    -writecsv - Reformats the Fixed length DAT file to a CSV file.");
-			System.out.println("    -zipbup   - Zips Original DAT file and copies it to two backup locations.");
-			System.out.println("    -writedb  - Writes the CSV file into the Database, then deletes the CSV file.");
-			System.out.println("\n*If running this command daily use: 'java -jar DatToCSV.jar -writecsv -zipbup - writedb'");
-			System.out.println("\n*If importing old data into database use: 'java -jar DatToCSV.jar -writecsv - writedb'");
-			System.out.println("");
+			if (ArrayUtils.contains(arguments, "--rwtrailer")) {
+				readWriteTrailerToDB(appSettings);
+			}
+			if (ArrayUtils.contains(arguments, "--writecsv")) {
+				createCSVFile(appSettings);
+			}
+			if (ArrayUtils.contains(arguments, "--writedb")) {
+				writeDataToDB(appSettings);
+			}
+			if (ArrayUtils.contains(arguments, "--zipbup")) {
+				archiveAndBackup(appSettings);
+			}
 		}
 	}
 
-	public static void printArgumentsPassed(String[] args) {
-		System.out.println("Arguments: ");
-		for (int a = 0; a < args.length; ++a) {
-			System.out.println("Arg" + (a + 1) + " - " + args[a]);
-		}
-	}
-
-	public static void writecsv(String[] appSettings) {
-		// Convert .DAT file to .CSV file.
-		FormatCSV fcsv = new FormatCSV();
-		fcsv.readDATtoMem(appSettings[1]);
-		fcsv.writeCSVtoFile();
-	}
-
-	public static void zipAndBackup (String[] appSettings) {
+	private static void archiveAndBackup(ApplicationSettings appSettings) {
 		// Zip files, move to backup directories.
 		WriteFiles wf = new WriteFiles(appSettings);
 		wf.writeZipFile(); // Write Zip Files.
@@ -80,7 +131,41 @@ public class ImportMain {
 		wf.moveDatFile(); // Delete yesterdays Dat file and move todays to that location.
 	}
 
-	public static void writeToDB(String[] appSettings) {
+	private static void createCSVFile(ApplicationSettings appSettings) {
+		// Convert fixed length .DAT file to .CSV file.
+		FormatCSV fcsv = new FormatCSV();
+		fcsv.writeCSVDataToFile(appSettings);
+	}
+
+	private static void printArgumentsPassed(String[] args) {
+		System.out.println("Arguments: ");
+		for (int a = 0; a < args.length; ++a) {
+			System.out.println("Argument" + (a + 1) + ": " + args[a]);
+		}
+	}
+
+	private static void printHelpScreen() {
+		StringBuilder sb = new StringBuilder("\nPlease run with arguments:\n");
+		sb.append("    --datfile:	Follow with \"='filename'\" to import. Ignores config file value.\n");
+		sb.append("    --dirname:	Follow with \"='/path/to/files/'\" to loop through a directory of Zipped files.\n");
+		sb.append("    --rwtrailer:	Reads the DAT file header/trailer, Writes the data to the database.\n");
+		sb.append("    --writecsv:	Reformats the Fixed length DAT file to a CSV file.\n");
+		sb.append("    --writedb:	Writes the CSV file into the Database, then deletes the CSV file.\n");
+		sb.append("    --zipbup:	Zips Original DAT file and copies it to two backup locations.\n");
+		sb.append("\n*If running this command daily use: 'java -jar TradeRevImport.jar --rwtrailer --writecsv --writedb --zipbup'\n");
+		sb.append("\n*If importing old data into database use: 'java -jar TradeRevImport.jar --writecsv --writedb'\n");
+		sb.append("\n*You may want to add the trailer data if you havent already: 'java -jar TradeRevImport.jar --rwtrailer'\n");
+		sb.append("\n");
+		System.out.println(sb.toString());
+	}
+
+	private static void readWriteTrailerToDB(ApplicationSettings appSettings) {
+		FormatCSV fcsv = new FormatCSV();
+		WriteFiles wf = new WriteFiles(appSettings);
+		wf.importTrailerData(fcsv.writeDataToTrailerTable(appSettings));
+	}
+
+	private static void writeDataToDB(ApplicationSettings appSettings) {
 		// Import SQL into database.
 		WriteFiles wf = new WriteFiles(appSettings);
 		wf.importCsvToSql(); // Create SQL queries and import data to table.

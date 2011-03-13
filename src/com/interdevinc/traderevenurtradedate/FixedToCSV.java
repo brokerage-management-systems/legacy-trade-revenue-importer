@@ -7,6 +7,8 @@
  */
 package com.interdevinc.traderevenurtradedate;
 
+import java.util.ArrayList;
+
 //TODO: This definition should be moved to a config file
 public class FixedToCSV {
 
@@ -563,6 +565,20 @@ public class FixedToCSV {
 
     public String[] getFixToCSV() {
         return this.lineCSV;
+    }
+    
+    /**
+     * METHOD: INSERT COMMAS INTO
+     * @param strings 
+     */
+    public void insertCommasInto(ArrayList<String> strings) {
+        for (int i = 0; i < strings.size(); i++) {
+            StringBuffer sb = new StringBuffer(strings.get(i));
+            for (int j = 0; j < calcFieldLengths.length - 1; ++j) {
+                sb = sb.insert(calcFieldLengths[j], delim);
+            }
+            strings.set(i, sb.toString());
+        }
     }
 
 }

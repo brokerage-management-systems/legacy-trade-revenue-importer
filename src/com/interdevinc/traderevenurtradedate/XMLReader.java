@@ -18,7 +18,7 @@ import org.w3c.dom.NodeList;
 public class XMLReader {
 
     private Document doc;
-    private String[] appSettings = new String[7];
+    //private String[] appSettings = new String[7];
     private String[] dbSettings = new String[4];
 
     public XMLReader(String fileLocation) {
@@ -33,7 +33,8 @@ public class XMLReader {
         }
     }
 
-    public void setAppSettings() {
+    public ApplicationSettings createApplicationSettings() {
+    	ApplicationSettings as = new ApplicationSettings();
         NodeList nodeList = doc.getElementsByTagName("appSettings");
         for (int s = 0; s < nodeList.getLength(); ++s) {
             Node nodeItem = nodeList.item(s);
@@ -43,38 +44,45 @@ public class XMLReader {
                 NodeList fileDirEleList = eleItem.getElementsByTagName("fileDir");
                 Element fileDirEle = (Element) fileDirEleList.item(0);
                 NodeList fileDir = fileDirEle.getChildNodes();
-                appSettings[0] = ((Node) fileDir.item(0)).getNodeValue();
-
+                //appSettings[0] = ((Node) fileDir.item(0)).getNodeValue();
+                as.setFileDirectory(((Node) fileDir.item(0)).getNodeValue());
+                
                 NodeList datFileNameEleList = eleItem.getElementsByTagName("datFileName");
                 Element datFileNameEle = (Element) datFileNameEleList.item(0);
                 NodeList datFileName = datFileNameEle.getChildNodes();
-                appSettings[1] = ((Node) datFileName.item(0)).getNodeValue();
-
+                //appSettings[1] = ((Node) datFileName.item(0)).getNodeValue();
+                as.setDatFileName(((Node) datFileName.item(0)).getNodeValue());
+                
                 NodeList outputFileNameEleList = eleItem.getElementsByTagName("outputFileName");
                 Element outputFileNameEle = (Element) outputFileNameEleList.item(0);
                 NodeList outputFileName = outputFileNameEle.getChildNodes();
-                appSettings[2] = ((Node) outputFileName.item(0)).getNodeValue();
-
+                //appSettings[2] = ((Node) outputFileName.item(0)).getNodeValue();
+                as.setOutputFileName(((Node) outputFileName.item(0)).getNodeValue());
+                
                 NodeList zipFileBaseNameEleList = eleItem.getElementsByTagName("zipFileBaseName");
                 Element zipFileBaseNameEle = (Element) zipFileBaseNameEleList.item(0);
                 NodeList zipFileBaseName = zipFileBaseNameEle.getChildNodes();
-                appSettings[3] = ((Node) zipFileBaseName.item(0)).getNodeValue();
-
+                //appSettings[3] = ((Node) zipFileBaseName.item(0)).getNodeValue();
+                as.setZipFileBaseName(((Node) zipFileBaseName.item(0)).getNodeValue());
+                
                 NodeList backupLocation1EleList = eleItem.getElementsByTagName("backupLocation1");
                 Element backupLocation1Ele = (Element) backupLocation1EleList.item(0);
                 NodeList backupLocation1 = backupLocation1Ele.getChildNodes();
-                appSettings[4] = ((Node) backupLocation1.item(0)).getNodeValue();
-
+                //appSettings[4] = ((Node) backupLocation1.item(0)).getNodeValue();
+                as.setBackupDirectory(((Node) backupLocation1.item(0)).getNodeValue());
+                
                 NodeList backupLocation2EleList = eleItem.getElementsByTagName("backupLocation2");
                 Element backupLocation2Ele = (Element) backupLocation2EleList.item(0);
                 NodeList backupLocation2 = backupLocation2Ele.getChildNodes();
-                appSettings[5] = ((Node) backupLocation2.item(0)).getNodeValue();
-
+                //appSettings[5] = ((Node) backupLocation2.item(0)).getNodeValue();
+                as.setBackupDirectoryOther(((Node) backupLocation2.item(0)).getNodeValue());
+                
                 NodeList yesterdaysDatEleList = eleItem.getElementsByTagName("yesterdaysDat");
                 Element yesterdaysDatEle = (Element) yesterdaysDatEleList.item(0);
                 NodeList yesterdaysDat = yesterdaysDatEle.getChildNodes();
-                appSettings[6] = ((Node) yesterdaysDat.item(0)).getNodeValue();
-
+                //appSettings[6] = ((Node) yesterdaysDat.item(0)).getNodeValue();
+                as.setPreviousDatFile(((Node) yesterdaysDat.item(0)).getNodeValue());
+                
 //                System.out.println("Root element " + doc.getDocumentElement().getNodeName());
 //                System.out.println("Application Settings: ");
 //                System.out.println("File Directory: " + ((Node) fileDir.item(0)).getNodeValue());
@@ -84,16 +92,14 @@ public class XMLReader {
 //                System.out.println("Backup Location 1: " + ((Node) backupLocation1.item(0)).getNodeValue());
 //                System.out.println("Backup Location 2: " + ((Node) backupLocation2.item(0)).getNodeValue());
 //                System.out.println("Previous Days Directory: " + ((Node) yesterdaysDat.item(0)).getNodeValue());
-
             }
-
         }
-
+        return as;
     }
 
-    public String[] getAppSettings() {
-        return this.appSettings;
-    }
+//    public String[] getAppSettings() {
+//        return this.appSettings;
+//    }
 
     public void setDBSettings() {
         NodeList nodeList = doc.getElementsByTagName("dbSettings");

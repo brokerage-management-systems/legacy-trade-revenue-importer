@@ -5,7 +5,7 @@
  * copyright 2009 InterDev Inc.
  *
  */
-package com.interdevinc.traderevenurtradedate;
+package com.interdevinc.traderevenuetradedate;
 
 import java.util.ArrayList;
 
@@ -26,7 +26,6 @@ public class FixedToCSV {
 
     public void setFieldLengths() {
         // Length of fixed width fields
-
         origFieldLengths[0] = 2; //length 2
         origFieldLengths[1] = 4; //length 7
         origFieldLengths[2] = 1; //length 9
@@ -526,8 +525,6 @@ public class FixedToCSV {
         fieldNames[238] = "FILLER_13_l";
         fieldNames[239] = "SUPER_BRANCH_13";
         fieldNames[240] = "FILLER_13_m";
-
-
     }
 
     public String[] getFieldNames() {

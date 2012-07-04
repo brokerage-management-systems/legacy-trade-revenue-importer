@@ -1,4 +1,4 @@
-package com.interdevinc.traderevenurtradedate;
+package com.interdevinc.traderevenuetradedate;
 
 public class ApplicationSettings {
 

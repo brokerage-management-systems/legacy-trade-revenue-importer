@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
-import com.interdevinc.traderevenurtradedate.XMLReader;
+import com.interdevinc.traderevenuetradedate.XMLReader;
 
 /*
  * DatabaseConnect

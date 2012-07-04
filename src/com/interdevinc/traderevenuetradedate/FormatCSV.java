@@ -11,7 +11,7 @@
  * @author Matthew Weppler
  * copyright 2011 InterDev Inc.
  */
-package com.interdevinc.traderevenurtradedate;
+package com.interdevinc.traderevenuetradedate;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

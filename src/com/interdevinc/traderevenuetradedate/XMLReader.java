@@ -5,7 +5,7 @@
  * copyright 2010 InterDev Inc.
  *
  */
-package com.interdevinc.traderevenurtradedate;
+package com.interdevinc.traderevenuetradedate;
 
 import java.io.File;
 import javax.xml.parsers.DocumentBuilderFactory;
